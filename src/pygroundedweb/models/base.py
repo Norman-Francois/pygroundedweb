@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Set
 
-from pydantic import BaseModel, PrivateAttr, model_validator
+from pydantic import BaseModel, PrivateAttr
 
 
 class APIModel(BaseModel, ABC):
@@ -10,34 +10,46 @@ class APIModel(BaseModel, ABC):
     _mutable_fields: Set[str] = PrivateAttr(default_factory=set)
     _client: str = PrivateAttr(default_factory=str)
 
-    @classmethod
-    @model_validator(mode="before")
-    def collect_mutability(cls, values: dict) -> dict:
-        m = set(values.pop('mutable_fields', []))
-        i = set(values.pop('immutable_fields', []))
-        if i and not m:
-            m = set(cls.model_fields.keys()) - i
-        values['_init_mutable_fields'] = m
-        return values
+    def __init__(
+            self,
+            *,
+            mutable_fields: set[str] = None,
+            immutable_fields: set[str] = None,
+            **data
+    ):
+        all_fields = set(self.__class__.model_fields.keys())
 
-    def __init__(self, **data):
-        init_m = data.pop('mutable_fields', set())
+        if mutable_fields is not None:
+            final_mutable = mutable_fields
+        elif immutable_fields is not None:
+            final_mutable = all_fields - set(immutable_fields)
+        else:
+            final_mutable = all_fields  # ✅ par défaut : tout est mutable
+
+        # ✅ Validation via méthode privée
+        self._validate_fields_exist(final_mutable, label="mutable_fields")
+        if immutable_fields is not None:
+            self._validate_fields_exist(immutable_fields, label="immutable_fields")
+
+        # Nettoyage
+        data.pop('mutable_fields', None)
+        data.pop('immutable_fields', None)
+
         super().__init__(**data)
-        object.__setattr__(self, '_mutable_fields', init_m)
+        object.__setattr__(self, '_mutable_fields', final_mutable)
 
     def __setattr__(self, name: str, value) -> None:
         if hasattr(self, name) and name not in self._mutable_fields:
             raise AttributeError(f"Field '{name}' is immutable for this instance")
         super().__setattr__(name, value)
 
-    @abstractmethod
-    def refresh(self):
-        pass
+    def _validate_fields_exist(self, fields: set[str], label: str) -> None:
+        """Valide que les champs donnés existent dans le modèle."""
+        all_fields = set(self.__class__.model_fields.keys())
+        unknown = set(fields) - all_fields
+        if unknown:
+            raise ValueError(f"Unknown field(s) in {label}: {unknown}")
 
-    @abstractmethod
-    def update(self):
-        pass
-
-    @abstractmethod
-    def delete(self):
-        pass
+    def is_mutable(self, field: str) -> bool:
+        self._validate_fields_exist({field}, label="is_mutable")
+        return field in self._mutable_fields

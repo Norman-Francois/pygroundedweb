@@ -1,18 +1,13 @@
 from __future__ import annotations
 
-from datetime import date
+
 from typing import List, Optional
 
 from .base import APIModel
+from .dataset import Dataset
 from .dataset_photo import DatasetPhoto
-from .user import User
 
 
-class Dataset(APIModel):
-    name: str
-    date: date
-    user: User
+class Selection(APIModel):
+    dataset: Dataset
     photos: Optional[List[DatasetPhoto]]
-
-
-
