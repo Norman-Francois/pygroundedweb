@@ -6,6 +6,7 @@ from pydantic import HttpUrl
 
 from .base import APIModel
 
+
 class TypePhoto(Enum):
     BEFORE = "before"
     AFTER = "after"

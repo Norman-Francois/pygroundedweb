@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Set
 
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, model_validator
 
 
 class APIModel(BaseModel, ABC):
@@ -37,6 +37,29 @@ class APIModel(BaseModel, ABC):
 
         super().__init__(**data)
         object.__setattr__(self, '_mutable_fields', final_mutable)
+
+    @model_validator(mode="after")
+    def _set_mutability(self) -> 'APIModel':
+        data = self.model_extra or {}
+
+        mutable_fields = data.get("mutable_fields")
+        immutable_fields = data.get("immutable_fields")
+
+        all_fields = set(self.__class__.model_fields.keys())
+
+        if mutable_fields is not None:
+            final_mutable = set(mutable_fields)
+        elif immutable_fields is not None:
+            final_mutable = all_fields - set(immutable_fields)
+        else:
+            final_mutable = all_fields
+
+        self._validate_fields_exist(final_mutable, label="mutable_fields")
+        if immutable_fields is not None:
+            self._validate_fields_exist(set(immutable_fields), label="immutable_fields")
+
+        object.__setattr__(self, "_mutable_fields", final_mutable)
+        return self
 
     def __setattr__(self, name: str, value) -> None:
         if hasattr(self, name) and name not in self._mutable_fields:
