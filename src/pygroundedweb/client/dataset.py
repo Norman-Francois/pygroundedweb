@@ -2,7 +2,7 @@ import logging
 import mimetypes
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 from ..models.dataset import Dataset
 from .base import BaseAPIClient
@@ -88,13 +88,13 @@ class DatasetClient:
         return self._confirm_photo(photo_id)
 
     def create(
-        self,
-        dataset_name: str,
-        photos_before_paths: list[str] = None,
-        photos_after_paths: list[str] = None,
-        photos_before_dir: str = None,
-        photos_after_dir: str = None,
-        max_workers: int = 5
+            self,
+            dataset_name: str,
+            photos_before_paths: list[str] = None,
+            photos_after_paths: list[str] = None,
+            photos_before_dir: str = None,
+            photos_after_dir: str = None,
+            max_workers: int = 5
     ) -> bool:
         try:
             # 1) Création du dataset
@@ -109,17 +109,16 @@ class DatasetClient:
 
             # 2) Collecte des chemins de photos
             photos_before = photos_before_paths or []
-            photos_after  = photos_after_paths  or []
+            photos_after = photos_after_paths or []
 
             photos_before += _get_photos_from_dir(photos_before_dir)
-            photos_after  += _get_photos_from_dir(photos_after_dir)
+            photos_after += _get_photos_from_dir(photos_after_dir)
 
             photos = []
             for path in photos_before:
                 photos.append((path, "before"))
             for path in photos_after:
                 photos.append((path, "after"))
-
 
             # 3) Traitement parallèle de chaque photo
             futures = []
@@ -134,7 +133,7 @@ class DatasetClient:
 
             # collecte des résultats
             success = sum(1 for f in futures if f.result())
-            total   = len(futures)
+            total = len(futures)
             logging.info(f"{success}/{total} photos traitées avec succès.")
             if success != total:
                 logging.error(f"{total - success} photo(s) ont échoué.")
@@ -149,11 +148,18 @@ class DatasetClient:
             logging.error(f"Erreur dans create: {e}")
             return False
 
-
     def retrieve(self, dataset_id: int):
         dataset_json = self._client.get_by_id("datasets", dataset_id)
         dataset_json["mutable_fields"] = ["name"]
         return Dataset.model_validate(dataset_json)
+
+    def update(self, dataset: Dataset):
+        dataset_json = self._client.update("datasets", dataset)
+        return Dataset.model_validate(dataset_json)
+
+    def delete(self, dataset_id: int):
+        self._client.delete_by_id("datasets", dataset_id)
+
 
 def _get_photos_from_dir(directory: str) -> list[str]:
     """

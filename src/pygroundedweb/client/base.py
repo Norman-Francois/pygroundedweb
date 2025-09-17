@@ -36,17 +36,17 @@ class BaseAPIClient:
         logging.debug(f"  Resp body: {response.text}")
 
     def request(
-        self,
-        method: str,
-        endpoint: str,
-        *,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Any] = None,
-        data: Optional[Any] = None,
-        headers: Optional[Dict[str, str]] = None,
-        allow_refresh: bool = True,
-        max_retries: int = 3,
-        **kwargs
+            self,
+            method: str,
+            endpoint: str,
+            *,
+            params: Optional[Dict[str, Any]] = None,
+            json: Optional[Any] = None,
+            data: Optional[Any] = None,
+            headers: Optional[Dict[str, str]] = None,
+            allow_refresh: bool = True,
+            max_retries: int = 3,
+            **kwargs
     ) -> requests.Response:
         url = f"{self.base_url}{endpoint}"
         hdrs = {**self.default_headers, **(headers or {})}
@@ -151,8 +151,13 @@ class BaseAPIClient:
         resp = self.patch(f"{resource}/{model.pk}/", json=model.model_dump())
         return resp.json()
 
+    def create(self, resource: str, data: Dict[str, Any]) -> Any:
+        resp = self.post(f"{resource}", json=data)
+        return resp.json()
+
     def delete_by_id(self, resource: str, id: int):
-        self.delete(f"{resource}/{id}/")
+        response = self.delete(f"{resource}/{id}/")
+        return response.json()
 
     def get_all(self, resource: str, query_string: Dict[str, Any]) -> List[Any]:
         response = self.get(f"/{resource}/", params=query_string)
