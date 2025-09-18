@@ -48,7 +48,7 @@ class BaseAPIClient:
             max_retries: int = 3,
             **kwargs
     ) -> requests.Response:
-        url = f"{self.base_url}{endpoint}"
+        url = f"{self.base_url}/{endpoint.rstrip("/")}/"
         hdrs = {**self.default_headers, **(headers or {})}
 
         for attempt in range(1, max_retries + 1):
@@ -111,7 +111,7 @@ class BaseAPIClient:
     def login(self, email: str, password: str) -> bool:
         try:
             self.post(
-                '/auth/login/',
+                'auth/login/',
                 json={'email': email, 'password': password},
                 allow_refresh=False
             )
@@ -124,7 +124,7 @@ class BaseAPIClient:
 
     def logout(self) -> bool:
         try:
-            self.post('/auth/logout/')
+            self.post('auth/logout/')
             logging.info("Déconnexion réussie.")
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
@@ -133,7 +133,7 @@ class BaseAPIClient:
 
     def refresh(self) -> bool:
         try:
-            self.post('/auth/token/refresh/')
+            self.post('auth/token/refresh/')
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
             logging.error(f"Échec du rafraîchissement du token : {e}")
