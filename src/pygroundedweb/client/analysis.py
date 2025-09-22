@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from .base import BaseAPIClient
 from ..models.analysis import Analysis
+from ..models.configuration import Configuration
 from ..models.dataset import Dataset
 
 
@@ -12,10 +13,11 @@ class AnalysisClient:
     def create(
             self,
             analysis_name: str,
-            notify_by_email: Optional[bool] = False,
+            configuration: Configuration,
             dataset: Optional[Dataset] = None,
             dataset_id: Optional[int] = None,
-            selected_photos_id: Optional[List[int]] = None
+            selected_photos_id: Optional[List[int]] = None,
+            notify_by_email: Optional[bool] = False,
     ) -> Analysis:
 
         if not ((dataset is None) ^ (dataset_id is None)):
@@ -27,9 +29,10 @@ class AnalysisClient:
         data_analysis = {
             "name": analysis_name,
             "notify_by_email": notify_by_email,
+            "configuration": configuration.model_dump(),
             "selection": {
                 "dataset_id": dataset_id,
-                "photos_ids": selected_photos_id
+                **({"photos_ids": selected_photos_id} if selected_photos_id is not None else {})
             }
         }
 

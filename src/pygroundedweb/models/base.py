@@ -1,12 +1,11 @@
 from abc import ABC
-from typing import Set
+from typing import Set, Optional
 
 from pydantic import BaseModel, PrivateAttr, model_validator
 
 
 class APIModel(BaseModel, ABC):
-    pk: int
-
+    pk: Optional[int] = None
     _mutable_fields: Set[str] = PrivateAttr(default_factory=set)
     _client: str = PrivateAttr(default_factory=str)
 
