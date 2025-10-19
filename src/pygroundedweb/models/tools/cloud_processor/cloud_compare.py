@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from .base import CloudProcessor
+from typing import Literal
+
+from ..base import ToolModel
 
 
-class CloudCompare(CloudProcessor):
-    pass
+class CloudCompare(ToolModel):
+    resource_type: Literal['CloudCompare'] = 'CloudCompare'

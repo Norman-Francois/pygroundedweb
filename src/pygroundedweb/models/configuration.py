@@ -4,13 +4,13 @@ from typing import List, Optional
 
 from .base import APIModel
 from .scalebar import ScaleBar
-from .tools.cloud_processor.base import CloudProcessor
-from .tools.detector.base import Detector
-from .tools.sfm.base import SFM
+from .tools.cloud_processor import CloudProcessor
+from .tools.detector import Detector
+from .tools.sfm import SFM
 
 
 class Configuration(APIModel):
-    name: str
+    name: Optional[str] = None
     scale_bars: List[ScaleBar]
     detector: Detector
     cloud_processor: CloudProcessor
@@ -29,3 +29,4 @@ class Configuration(APIModel):
             data.pop("display_padding")
 
         return data
+

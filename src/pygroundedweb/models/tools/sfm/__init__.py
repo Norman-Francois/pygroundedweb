@@ -1,3 +1,7 @@
+from typing import Union
+
 from .micmac import MicMac
 
-__all__ = ["MicMac"]
+SFM = Union[MicMac]
+
+__all__ = ["MicMac", "SFM"]

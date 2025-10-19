@@ -14,7 +14,7 @@ class Dataset(APIModel):
     name: str
     date: date
     user: Union[User, str]
-    photos: Optional[List[DatasetPhoto]]
+    photos: Optional[List[DatasetPhoto]] = None
 
     @field_validator("date", mode="before")
     @classmethod

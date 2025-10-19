@@ -8,6 +8,7 @@ import requests
 from ..models.base import APIModel
 from .exception import APIError, NetworkError, PermissionDenied
 
+logger = logging.getLogger(__name__)
 
 class BaseAPIClient:
     def __init__(self, base_url: str, default_headers: Optional[Dict[str, str]] = None):
@@ -28,12 +29,12 @@ class BaseAPIClient:
     @staticmethod
     def _log_request(response: requests.Response, *args, **kwargs):
         req = response.request
-        logging.debug(f"→ {req.method} {req.url}")
-        logging.debug(f"  Req headers: {dict(req.headers)}")
-        logging.debug(f"  Req body: {req.body}")
-        logging.debug(f"← Status: {response.status_code}")
-        logging.debug(f"  Resp headers: {dict(response.headers)}")
-        logging.debug(f"  Resp body: {response.text}")
+        logger.debug(f"→ {req.method} {req.url}")
+        logger.debug(f"  Req headers: {dict(req.headers)}")
+        logger.debug(f"  Req body: {req.body}")
+        logger.debug(f"← Status: {response.status_code}")
+        logger.debug(f"  Resp headers: {dict(response.headers)}")
+        logger.debug(f"  Resp body: {response.text}")
 
     def request(
             self,
@@ -87,7 +88,7 @@ class BaseAPIClient:
                 raise APIError(f"HTTP {status} ({phrase}) reçu pour {url} : {text}")
 
             except requests.RequestException as e:
-                logging.warning(f"Erreur réseau, tentative {attempt}/{max_retries} : {e}")
+                logger.warning(f"Erreur réseau, tentative {attempt}/{max_retries} : {e}")
                 time.sleep(2 ** attempt)
 
         # Si on n'a toujours pas réussi
@@ -115,20 +116,20 @@ class BaseAPIClient:
                 json={'email': email, 'password': password},
                 allow_refresh=False
             )
-            logging.info("Authentification réussie.")
-            logging.debug(f"Cookies reçus : {self.session.cookies.get_dict()}")
+            logger.info("Authentification réussie.")
+            logger.debug(f"Cookies reçus : {self.session.cookies.get_dict()}")
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
-            logging.error(f"Échec de l'authentification : {e}")
+            logger.error(f"Échec de l'authentification : {e}")
             return False
 
     def logout(self) -> bool:
         try:
             self.post('auth/logout/')
-            logging.info("Déconnexion réussie.")
+            logger.info("Déconnexion réussie.")
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
-            logging.error(f"Échec de la déconnexion : {e}")
+            logger.error(f"Échec de la déconnexion : {e}")
             return False
 
     def refresh(self) -> bool:
@@ -136,7 +137,7 @@ class BaseAPIClient:
             self.post('auth/token/refresh/')
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
-            logging.error(f"Échec du rafraîchissement du token : {e}")
+            logger.error(f"Échec du rafraîchissement du token : {e}")
             return False
 
     @property

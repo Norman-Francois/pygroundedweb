@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from .base import Detector
+from typing import Literal
+
+from ..base import ToolModel
 
 
-class CCTag(Detector):
-    pass
+class CCTag(ToolModel):
+    resource_type: Literal['CCTag'] = 'CCTag'

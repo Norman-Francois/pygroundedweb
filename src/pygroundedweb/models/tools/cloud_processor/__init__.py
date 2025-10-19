@@ -1,3 +1,7 @@
+from typing import Union
+
 from .cloud_compare import CloudCompare
 
-__all__ = ["CloudCompare"]
+CloudProcessor = Union[CloudCompare]
+
+__all__ = ["CloudCompare", "CloudProcessor"]
