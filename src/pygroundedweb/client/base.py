@@ -1,5 +1,6 @@
 import logging
 import time
+from abc import ABC, abstractmethod
 from http import HTTPStatus
 from typing import Any, Dict, List, Optional
 
@@ -166,3 +167,28 @@ class BaseAPIClient:
 
     def close(self):
         self.session.close()
+
+
+class APIModelClient(ABC):
+    def __init__(self, client: BaseAPIClient):
+        self._client = client
+
+    @abstractmethod
+    def create(self, **kwargs) -> APIModel:
+        """Crée une nouvelle ressource."""
+        pass
+
+    @abstractmethod
+    def retrieve(self, resource_id: int) -> APIModel:
+        """Récupère une ressource par son ID."""
+        pass
+
+    @abstractmethod
+    def update(self, instance: APIModel) -> APIModel:
+        """Met à jour une instance existante."""
+        pass
+
+    @abstractmethod
+    def delete(self, resource_id: int) -> None:
+        """Supprime une ressource."""
+        pass

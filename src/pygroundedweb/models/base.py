@@ -1,13 +1,15 @@
 from abc import ABC
-from typing import Set, Optional
+from typing import Set, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel, PrivateAttr, model_validator
 
+if TYPE_CHECKING:
+    from ..client.base import APIModelClient
 
 class APIModel(BaseModel, ABC):
     pk: Optional[int] = None
     _mutable_fields: Set[str] = PrivateAttr(default_factory=set)
-    _client: str = PrivateAttr(default_factory=str)
+    _client: Optional['APIModelClient'] = PrivateAttr(default_factory=set)
 
     def __init__(
             self,
@@ -23,14 +25,12 @@ class APIModel(BaseModel, ABC):
         elif immutable_fields is not None:
             final_mutable = all_fields - set(immutable_fields)
         else:
-            final_mutable = all_fields  # ✅ par défaut : tout est mutable
+            final_mutable = all_fields
 
-        # ✅ Validation via méthode privée
         self._validate_fields_exist(final_mutable, label="mutable_fields")
         if immutable_fields is not None:
             self._validate_fields_exist(immutable_fields, label="immutable_fields")
 
-        # Nettoyage
         data.pop('mutable_fields', None)
         data.pop('immutable_fields', None)
 
@@ -75,3 +75,13 @@ class APIModel(BaseModel, ABC):
     def is_mutable(self, field: str) -> bool:
         self._validate_fields_exist({field}, label="is_mutable")
         return field in self._mutable_fields
+
+    def refresh(self) -> None:
+        """Rafraîchit l'instance actuelle avec les données du serveur."""
+        if not self._client or self.pk is None:
+            raise RuntimeError("Refresh impossible : client manquant ou pk nulle.")
+
+        fresh_obj = self._client.retrieve(self.pk)
+
+        self.__dict__.update(fresh_obj.__dict__)
+        object.__setattr__(self, "_mutable_fields", fresh_obj._mutable_fields)

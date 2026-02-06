@@ -1,14 +1,17 @@
 from typing import Optional, List
 
-from .base import BaseAPIClient
+from .base import APIModelClient
 from ..models.analysis import Analysis
 from ..models.configuration import Configuration
 from ..models.dataset import Dataset
 
 
-class AnalysisClient:
-    def __init__(self, client: BaseAPIClient):
-        self._client = client
+class AnalysisClient(APIModelClient):
+
+    def _parse_json(self, analysis_json: str) -> Analysis:
+        instance = Analysis.model_validate(analysis_json)
+        object.__setattr__(instance, "_client", self)
+        return instance
 
     def create(
             self,
@@ -38,18 +41,17 @@ class AnalysisClient:
 
         analysis_json = self._client.create("analyzes", data_analysis)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
-        return Analysis.model_validate(analysis_json)
+        return self._parse_json(analysis_json)
 
     def retrieve(self, analysis_id: int):
         analysis_json = self._client.get_by_id("analyzes", analysis_id)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
-        return Analysis.model_validate(analysis_json)
+        return self._parse_json(analysis_json)
 
-    def update(self, analysis: Analysis):
+    def update(self, analysis: Analysis) -> Analysis:
         analysis_json = self._client.update("analyzes", analysis)
-        return Analysis.model_validate(analysis_json)
+        analysis_json["mutable_fields"] = ["name", "notify_by_email"]
+        return self._parse_json(analysis_json)
 
     def delete(self, analysis_id: int):
         self._client.delete_by_id("analyzes", analysis_id)
-
-

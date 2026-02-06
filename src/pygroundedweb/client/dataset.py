@@ -3,15 +3,21 @@ import mimetypes
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, List
 
 from ..models.dataset import Dataset
-from .base import BaseAPIClient
+from .base import APIModelClient
 
 
-class DatasetClient:
+class DatasetClient(APIModelClient):
 
-    def __init__(self, client: BaseAPIClient):
-        self._client = client
+    def _parse_json(self, dataset_json: dict) -> Dataset:
+        if "mutable_fields" not in dataset_json and "immutable_fields" not in dataset_json:
+            dataset_json["mutable_fields"] = ["name"]
+
+        instance = Dataset.model_validate(dataset_json)
+        object.__setattr__(instance, "_client", self)
+        return instance
 
     def _create_dataset_photo(self, dataset_id: int, photo_path: str, photo_type: str):
         filename = os.path.basename(photo_path)
@@ -150,12 +156,11 @@ class DatasetClient:
 
     def retrieve(self, dataset_id: int):
         dataset_json = self._client.get_by_id("datasets", dataset_id)
-        dataset_json["mutable_fields"] = ["name"]
-        return Dataset.model_validate(dataset_json)
+        return self._parse_json(dataset_json)
 
     def update(self, dataset: Dataset):
         dataset_json = self._client.update("datasets", dataset)
-        return Dataset.model_validate(dataset_json)
+        return self._parse_json(dataset_json)
 
     def delete(self, dataset_id: int):
         self._client.delete_by_id("datasets", dataset_id)
