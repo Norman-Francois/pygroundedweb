@@ -1,4 +1,5 @@
 from .base import BaseAPIClient
+from .configuration import ConfigurationClient
 from .dataset import DatasetClient
 from .analysis import AnalysisClient
 
@@ -8,6 +9,7 @@ class GroundedWebClient:
         self._api = BaseAPIClient(base_url)
         self.dataset = DatasetClient(self._api)
         self.analysis = AnalysisClient(self._api)
+        self.configuration = ConfigurationClient(self._api)
 
     def login(self, email: str, password: str):
         return self._api.login(email, password)
