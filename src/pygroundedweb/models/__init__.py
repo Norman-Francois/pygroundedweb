@@ -1,4 +1,4 @@
-from .analysis import Analysis, AnalysisStatus
+from .analysis import Analysis, AnalysisStatus, Hole
 from .configuration import Configuration
 from .dataset import Dataset
 from .dataset_photo import DatasetPhoto
@@ -13,5 +13,6 @@ from .tools.sfm import DistortionModel, ZoomFinal, TapiocaMode
 __all__ = [
     "Analysis", "AnalysisStatus", "Configuration", "Dataset",
     "DatasetPhoto", "ScaleBar", "Selection", "CCTag",
-    "CloudCompare", "MicMac", "DistortionModel", "ZoomFinal", "TapiocaMode"
+    "CloudCompare", "MicMac", "DistortionModel", "ZoomFinal", "TapiocaMode",
+    "Hole"
 ]
