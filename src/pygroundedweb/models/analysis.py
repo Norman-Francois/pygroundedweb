@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import HttpUrl
 
@@ -16,6 +16,10 @@ class AnalysisStatus(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
+class Hole(APIModel):
+    number: int
+    volume: float
+
 class Analysis(APIModel):
     name: str
     date: datetime
@@ -26,3 +30,4 @@ class Analysis(APIModel):
     selection: Selection
     notify_by_email: bool
     configuration: Configuration
+    holes: List[Hole]
