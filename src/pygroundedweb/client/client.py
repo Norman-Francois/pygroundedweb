@@ -12,7 +12,7 @@ class GroundedWebClient:
         self.configuration = ConfigurationClient(self._api)
 
     def login(self, email: str, password: str):
-        return self._api.login(email, password)
+        self._api.login(email, password)
 
     def logout(self):
-        return self._api.logout()
+        self._api.logout()

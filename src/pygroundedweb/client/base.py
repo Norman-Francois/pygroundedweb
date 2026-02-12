@@ -110,7 +110,7 @@ class BaseAPIClient:
     def delete(self, endpoint: str, **kwargs) -> requests.Response:
         return self.request('DELETE', endpoint, **kwargs)
 
-    def login(self, email: str, password: str) -> bool:
+    def login(self, email: str, password: str):
         try:
             self.post(
                 'auth/login/',
@@ -119,19 +119,25 @@ class BaseAPIClient:
             )
             logger.info("Authentification réussie.")
             logger.debug(f"Cookies reçus : {self.session.cookies.get_dict()}")
-            return True
-        except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
-            logger.error(f"Échec de l'authentification : {e}")
-            return False
+        except APIError as e:
+            if "400" in str(e):
+                logger.error(f"Échec de l'authentification pour {email} : Identifiants incorrects.")
+                raise PermissionDenied("Identifiants incorrects (Email ou mot de passe invalide).") from e
 
-    def logout(self) -> bool:
+            logger.error(f"Erreur lors de l'authentification de {email} : {e}")
+            raise e
+
+    def logout(self):
         try:
             self.post('auth/logout/')
             logger.info("Déconnexion réussie.")
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
-            logger.error(f"Échec de la déconnexion : {e}")
-            return False
+            logger.error(f"Erreur lors de la requête de déconnexion : {e}")
+            raise e
+        finally:
+            self.session.cookies.clear()
+            logger.debug("Session locale nettoyée (Cookies supprimés).")
 
     def refresh(self) -> bool:
         try:
