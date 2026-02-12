@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 from ..models.base import APIModel
+from ..models.user import User
 from .exception import APIError, NetworkError, PermissionDenied
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ class BaseAPIClient:
         :param base_url: URL de base de l'API (ex: "http://localhost:8000/api")
         :param default_headers: headers ajoutés à chaque requête
         """
-        self.currentUser = None
+        self.current_user = None
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         self.session.hooks['response'] = [self._log_request]
@@ -110,6 +111,10 @@ class BaseAPIClient:
     def delete(self, endpoint: str, **kwargs) -> requests.Response:
         return self.request('DELETE', endpoint, **kwargs)
 
+    def _retrieve_current_user(self):
+        user_json = self.get('auth/user/').json()
+        self.current_user = User.model_validate(user_json)
+
     def login(self, email: str, password: str):
         try:
             self.post(
@@ -119,6 +124,7 @@ class BaseAPIClient:
             )
             logger.info("Authentification réussie.")
             logger.debug(f"Cookies reçus : {self.session.cookies.get_dict()}")
+            self._retrieve_current_user()
         except APIError as e:
             if "400" in str(e):
                 logger.error(f"Échec de l'authentification pour {email} : Identifiants incorrects.")
@@ -131,25 +137,26 @@ class BaseAPIClient:
         try:
             self.post('auth/logout/')
             logger.info("Déconnexion réussie.")
-            return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
             logger.error(f"Erreur lors de la requête de déconnexion : {e}")
             raise e
         finally:
             self.session.cookies.clear()
+            self.current_user = None
             logger.debug("Session locale nettoyée (Cookies supprimés).")
 
     def refresh(self) -> bool:
         try:
-            self.post('auth/token/refresh/')
+            self.post('auth/token/refresh/',
+                      allow_refresh=False)
             return True
         except (NetworkError, PermissionDenied, APIError, requests.RequestException) as e:
             logger.error(f"Échec du rafraîchissement du token : {e}")
             return False
 
     @property
-    def is_connected(self) -> bool:
-        return self.currentUser is not None
+    def is_authenticated(self) -> bool:
+        return self.current_user is not None
 
     def get_by_id(self, resource: str, id: int) -> Any:
         resp = self.get(f"{resource}/{id}")
