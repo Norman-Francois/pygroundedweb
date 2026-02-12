@@ -23,6 +23,7 @@ class Hole(APIModel):
 class Analysis(APIModel):
     name: str
     date: datetime
+    user: str
     status: Optional[AnalysisStatus] = None
     point_cloud_before: Optional[HttpUrl] = None
     point_cloud_after: Optional[HttpUrl] = None
