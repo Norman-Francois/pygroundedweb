@@ -34,7 +34,7 @@ class DatasetClient(APIModelClient):
             },
             "dataset_id": dataset_id
         }
-        resp = self._client.post("/datasetphotos/", json=payload)
+        resp = self._client.post("datasetphotos/", json=payload)
         resp.raise_for_status()
         data = resp.json()
 
@@ -65,7 +65,7 @@ class DatasetClient(APIModelClient):
 
     def _confirm_photo(self, photo_id: int) -> bool:
         try:
-            rc = self._client.post(f"/datasetphotos/{photo_id}/confirm-upload/")
+            rc = self._client.post(f"datasetphotos/{photo_id}/confirm-upload/")
             rc.raise_for_status()
             return True
         except Exception as e:
@@ -104,7 +104,7 @@ class DatasetClient(APIModelClient):
     ) -> bool:
         try:
             # 1) Création du dataset
-            resp = self._client.post("/datasets/", json={"name": dataset_name})
+            resp = self._client.post("datasets/", json={"name": dataset_name})
             resp.raise_for_status()
             ds = resp.json()
             dataset_id = ds.get("pk") or ds.get("id")
@@ -145,7 +145,7 @@ class DatasetClient(APIModelClient):
                 logging.error(f"{total - success} photo(s) ont échoué.")
                 return False
 
-            conf = self._client.post(f"/datasets/{dataset_id}/confirm-upload/")
+            conf = self._client.post(f"datasets/{dataset_id}/confirm-upload/")
             conf.raise_for_status()
             logging.info("Upload du dataset confirmé.")
             return True
