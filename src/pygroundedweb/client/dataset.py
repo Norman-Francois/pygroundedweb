@@ -3,7 +3,7 @@ import mimetypes
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 from ..models.dataset import Dataset
 from .base import APIModelClient
@@ -96,11 +96,10 @@ class DatasetClient(APIModelClient):
     def create(
             self,
             dataset_name: str,
-            photos_before_paths: list[str] = None,
-            photos_after_paths: list[str] = None,
-            photos_before_dir: str = None,
-            photos_after_dir: str = None,
-            max_workers: int = 5
+            photos_before: list[str],
+            photos_after: list[str],
+            max_workers: int = 5,
+            progress_callback: Optional[Callable[[int, int], None]] = None
     ) -> bool:
         try:
             # 1) Création du dataset
@@ -114,11 +113,8 @@ class DatasetClient(APIModelClient):
             logging.info(f"Dataset créé (ID: {dataset_id})")
 
             # 2) Collecte des chemins de photos
-            photos_before = photos_before_paths or []
-            photos_after = photos_after_paths or []
-
-            photos_before += _get_photos_from_dir(photos_before_dir)
-            photos_after += _get_photos_from_dir(photos_after_dir)
+            photos_before = photos_before or []
+            photos_after = photos_after or []
 
             photos = []
             for path in photos_before:
@@ -164,17 +160,3 @@ class DatasetClient(APIModelClient):
 
     def delete(self, dataset_id: int):
         self._client.delete_by_id("datasets", dataset_id)
-
-
-def _get_photos_from_dir(directory: str) -> list[str]:
-    """
-    Retourne les chemins absolus des fichiers valides dans un dossier.
-    """
-    if not directory or not os.path.isdir(directory):
-        logging.warning(f"Dossier invalide ou non précisé : {directory}")
-        return []
-    return [
-        os.path.join(directory, f)
-        for f in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, f))
-    ]
