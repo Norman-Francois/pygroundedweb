@@ -8,8 +8,8 @@ from ..models.user import User
 
 
 class GroundedWebClient:
-    def __init__(self, base_url: str):
-        self._api = BaseAPIClient(base_url)
+    def __init__(self, base_url: str, check_connection: bool = True):
+        self._api = BaseAPIClient(base_url, check_connection=check_connection)
         self.dataset = DatasetClient(self._api)
         self.analysis = AnalysisClient(self._api)
         self.configuration = ConfigurationClient(self._api)

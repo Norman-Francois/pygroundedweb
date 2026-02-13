@@ -13,20 +13,28 @@ from .exception import APIError, NetworkError, PermissionDenied
 logger = logging.getLogger(__name__)
 
 class BaseAPIClient:
-    def __init__(self, base_url: str, default_headers: Optional[Dict[str, str]] = None):
+    def __init__(self, base_url: str, default_headers: Optional[Dict[str, str]] = None,
+                 check_connection: bool = True):
         """
         Client HTTP générique qui conserve la session et les cookies.
-        :param base_url: URL de base de l'API (ex: "http://localhost:8000/api")
+        :param base_url: URL de base de l'API (ex: "http://localhost:8000" ou "http://localhost:8000/api")
         :param default_headers: headers ajoutés à chaque requête
         """
         self.current_user = None
-        self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         self.session.hooks['response'] = [self._log_request]
         self.default_headers = default_headers or {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }
+
+        clean_url = base_url.strip().rstrip('/')
+        if not clean_url.endswith('/api'):
+            clean_url += '/api'
+        self.base_url = clean_url
+
+        if check_connection:
+            self._validate_api()
 
     @staticmethod
     def _log_request(response: requests.Response, *args, **kwargs):
@@ -41,7 +49,7 @@ class BaseAPIClient:
     def request(
             self,
             method: str,
-            endpoint: str,
+            endpoint: str = "",
             *,
             params: Optional[Dict[str, Any]] = None,
             json: Optional[Any] = None,
@@ -49,9 +57,13 @@ class BaseAPIClient:
             headers: Optional[Dict[str, str]] = None,
             allow_refresh: bool = True,
             max_retries: int = 3,
+            full_url: Optional[str] = None,
             **kwargs
     ) -> requests.Response:
-        url = f"{self.base_url}/{endpoint.rstrip("/")}/"
+        if full_url:
+            url = full_url
+        else:
+            url = f"{self.base_url}/{endpoint.rstrip('/')}/"
         hdrs = {**self.default_headers, **(headers or {})}
 
         for attempt in range(1, max_retries + 1):
@@ -67,6 +79,9 @@ class BaseAPIClient:
                 )
                 resp.raise_for_status()
                 return resp
+            except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema,
+                    requests.exceptions.InvalidURL) as e:
+                raise APIError(f"URL invalide ou protocole manquant : {e}") from e
 
             except requests.HTTPError as e:
                 status = e.response.status_code if e.response else None
@@ -177,6 +192,31 @@ class BaseAPIClient:
     def get_all(self, resource: str, query_string: Dict[str, Any]) -> List[Any]:
         response = self.get(f"/{resource}/", params=query_string)
         return response.json()
+
+    def _validate_api(self):
+        schema_url = self.base_url.replace('/api', '/schema')
+
+        try:
+            logger.debug(f"Vérification de l'identité API sur {schema_url}...")
+
+            response = self.request(
+                method='GET',
+                full_url=schema_url,
+                allow_refresh=False,
+                max_retries=1
+            )
+
+            data = response.json()
+            api_title = data.get('info', {}).get('title')
+            expected_title = "Grounded Web API"
+
+            if api_title != expected_title:
+                raise APIError(f"API incorrecte détectée : '{api_title}' (Attendu : {expected_title})")
+
+            logger.info(f"Connexion validée avec {api_title}.")
+
+        except (APIError, NetworkError, PermissionDenied, ValueError) as e:
+            raise APIError(f"Impossible de valider l'identité de l'API ({schema_url}) : {e}") from e
 
     def close(self):
         self.session.close()
