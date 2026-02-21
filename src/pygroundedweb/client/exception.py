@@ -6,3 +6,6 @@ class PermissionDenied(Exception):
 
 class APIError(Exception):
     pass
+
+class UploadError(Exception):
+    pass
