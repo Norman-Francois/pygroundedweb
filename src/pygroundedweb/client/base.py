@@ -268,7 +268,7 @@ class BaseAPIClient:
         Returns:
             Le JSON résultant de la mise à jour.
         """
-        resp = self.patch(f"{resource}/{model.pk}/", json=model.model_dump())
+        resp = self.patch(f"{resource}/{model.pk}/", json=model.model_dump(mode='json'))
         return resp.json()
 
     def create(self, resource: str, data: Dict[str, Any]) -> Any:
