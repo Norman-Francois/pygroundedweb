@@ -28,7 +28,7 @@ pip install pygroundedweb
 Pour le développement local :
 
 ```bash
-git clone [https://github.com/Norman-Francois/pygroundedweb.git](https://github.com/Norman-Francois/pygroundedweb.git)
+git clone https://github.com/Norman-Francois/pygroundedweb.git
 cd pygroundedweb
 pip install -e .
 ```
@@ -46,48 +46,54 @@ La bibliothèque expose un client principal `GroundedWebClient` et des modèles 
 ### Exemple d'utilisation
 
 ```python
-from pygroundedweb import (
-    GroundedWebClient,
-    Configuration,
-    ScaleBar,
-    MicMac,
-    CCTag,
-    CloudCompare,
-    DistortionModel
-)
+from pygroundedweb import GroundedWebClient
 
 # 1. Initialisation et authentification
-client = GroundedWebClient(base_url="http://localhost:8000/api")
-client.login(username="admin", password="password")
+client = GroundedWebClient(base_url="http://localhost:8000")
+client.login(email="admin@example.com", password="password")
 
 # 2. Récupération d'un dataset existant
-dataset = client.dataset.retrieve(pk=1)
+dataset = client.dataset.retrieve(1)
 
-# 3. Définition de la configuration d'analyse
-config = Configuration(
-    name="Config Standard",
-    scale_bars=[
-        ScaleBar(start=0, end=1, length=0.22),
-        ScaleBar(start=2, end=3, length=0.50)
-    ],
-    detector=CCTag(),
-    cloud_processor=CloudCompare(),
-    sfm=MicMac(
-        distorsion_model=DistortionModel.FRASER_BASIC,
-        tapioca_resolution=2000
-    )
-)
+# 3. Définir ou charger une configuration (exemple minimal)
+# from pygroundedweb.models.configuration import Configuration
+# config = Configuration(...)
 
-# 4. Lancement de l'analyse
-analysis = client.analysis.create(
-    analysis_name="Analyse Batch 01",
-    configuration=config,
-    dataset=dataset,
-    notify_by_email=True
-)
+# 4. Lancement de l'analyse (exemple)
+# analysis = client.analysis.create(
+#     analysis_name="Analyse Batch 01",
+#     configuration=config,
+#     dataset=dataset,
+#     notify_by_email=True
+# )
 
-print(f"Analyse créée : ID {analysis.pk} - Statut : {analysis.status}")
+# print(f"Analyse créée : ID {analysis.pk} - Statut : {analysis.status}")
+```
 
+## Documentation
+
+La documentation complète est générée avec Sphinx et se trouve dans le dossier `docs/`.
+
+Pour installer les dépendances nécessaires à la génération de la documentation :
+
+```bash
+pip install -r requirements.txt
+```
+
+Pour générer la documentation HTML localement :
+
+```bash
+cd docs
+make html
+# Le HTML sera généré dans docs/_build/html
+```
+
+Pour un rechargement automatique pendant le développement (optionnel) :
+
+```bash
+pip install sphinx-autobuild
+cd docs
+sphinx-autobuild . _build/html
 ```
 
 ## Structure du projet

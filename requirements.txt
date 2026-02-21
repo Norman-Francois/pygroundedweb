@@ -1,2 +1,5 @@
 pydantic==2.12.5
 Requests==2.32.5
+sphinx>=6.0
+sphinx-rtd-theme
+sphinx-autodoc-typehints
