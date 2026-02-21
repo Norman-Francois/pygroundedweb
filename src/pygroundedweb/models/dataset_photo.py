@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Optional
 
 from pydantic import HttpUrl
 
@@ -14,9 +15,9 @@ class TypePhoto(Enum):
 class DatasetPhoto(APIModel):
     name: str
     type: TypePhoto
-    thumb: HttpUrl
-    preview: HttpUrl
-    full_compressed: HttpUrl
-    original: HttpUrl
+    thumb: Optional[HttpUrl]
+    preview: Optional[HttpUrl]
+    full_compressed: Optional[HttpUrl]
+    original: Optional[HttpUrl]
 
 
