@@ -1,3 +1,8 @@
+"""Modèles relatifs aux analyses (Analysis, Hole, AnalysisStatus).
+
+Ces modèles décrivent l'état et les résultats (liens point cloud, logs) d'une analyse.
+"""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -11,16 +16,24 @@ from .configuration import Configuration
 from .selection import Selection
 
 class AnalysisStatus(str, Enum):
+    """Statut possible d'une analyse."""
     PENDING = "PENDING"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
 class Hole(APIModel):
+    """Représente un trou détecté avec numéro et volume."""
     number: int
     volume: float
 
 class Analysis(APIModel):
+    """Modèle représentant une analyse.
+
+    Champs importants :
+        name, date, user, status, selection, configuration, holes, et URLs vers les
+        artefacts produits (point_cloud, logs).
+    """
     name: str
     date: datetime
     user: str

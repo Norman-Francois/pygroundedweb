@@ -1,3 +1,8 @@
+"""Client pour gérer les analyses (création, lecture, mise à jour, suppression).
+
+Fournit des helpers pour créer une analyse à partir d'une configuration et d'un dataset.
+"""
+
 from typing import Optional, List
 
 from .base import APIModelClient
@@ -9,6 +14,7 @@ from ..models.dataset import Dataset
 class AnalysisClient(APIModelClient):
 
     def _parse_json(self, analysis_json: str) -> Analysis:
+        """Convertit le JSON renvoyé par l'API en instance `Analysis` et attache le client."""
         instance = Analysis.model_validate(analysis_json)
         object.__setattr__(instance, "_client", self)
         return instance
@@ -22,6 +28,22 @@ class AnalysisClient(APIModelClient):
             selected_photos_id: Optional[List[int]] = None,
             notify_by_email: Optional[bool] = False,
     ) -> Analysis:
+        """Crée une analyse côté API.
+
+        Args:
+            analysis_name: nom de l'analyse.
+            configuration: instance de `Configuration` à utiliser.
+            dataset: (optionnel) instance de `Dataset`.
+            dataset_id: (optionnel) identifiant du dataset (alternative à dataset).
+            selected_photos_id: liste d'IDs de photos sélectionnées pour l'analyse.
+            notify_by_email: si True, le serveur enverra une notification par e-mail en fin de traitement.
+
+        Returns:
+            Instance `Analysis` correspondant à la ressource créée.
+
+        Raises:
+            ValueError: si ni dataset ni dataset_id ne sont fournis ou si les deux le sont.
+        """
 
         if not ((dataset is None) ^ (dataset_id is None)):
             raise ValueError("You must provide either 'dataset' or 'dataset_id', but not both.")
@@ -44,14 +66,17 @@ class AnalysisClient(APIModelClient):
         return self._parse_json(analysis_json)
 
     def retrieve(self, analysis_id: int):
+        """Récupère une analyse par son identifiant et renvoie une instance `Analysis`."""
         analysis_json = self._client.get_by_id("analyzes", analysis_id)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
         return self._parse_json(analysis_json)
 
     def update(self, analysis: Analysis) -> Analysis:
+        """Met à jour une analyse existante et retourne l'objet mis à jour."""
         analysis_json = self._client.update("analyzes", analysis)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
         return self._parse_json(analysis_json)
 
     def delete(self, analysis_id: int):
+        """Supprime une analyse par identifiant."""
         self._client.delete_by_id("analyzes", analysis_id)
