@@ -4,4 +4,4 @@ from .cctag import CCTag
 
 Detector = Union[CCTag]
 
-__all__ = ["CCTag", Detector]
+__all__ = ["CCTag", "Detector"]

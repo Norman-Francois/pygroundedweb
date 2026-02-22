@@ -47,6 +47,6 @@ class Dataset(APIModel):
         if isinstance(value, str):
             try:
                 return datetime.fromisoformat(value).date()
-            except ValueError:
-                raise ValueError(f"Invalid date string: {value}")
+            except ValueError as exc:
+                raise ValueError(f"Invalid date string: {value}") from exc
         return value

@@ -10,6 +10,7 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional, List, Callable
+import requests
 
 from .exception import APIError, UploadError
 from ..models.dataset import Dataset
@@ -97,7 +98,7 @@ class DatasetClient(APIModelClient):
                     r = self._client.session.post(url, data=fields, files=files)
                     r.raise_for_status()
                 return True
-            except Exception as e:
+            except (OSError, requests.RequestException) as e:
                 logging.warning(f"[{filename}] Upload tentative {attempt} échouée : {e}")
                 if attempt < max_retries:
                     time.sleep(2 ** attempt)
@@ -114,7 +115,7 @@ class DatasetClient(APIModelClient):
             rc = self._client.post(f"datasetphotos/{photo_id}/confirm-upload/")
             rc.raise_for_status()
             return True
-        except Exception as e:
+        except (APIError, requests.RequestException) as e:
             logging.error(f"[{photo_id}] Échec de la confirmation de la photo : {e}")
             return False
 
@@ -127,7 +128,7 @@ class DatasetClient(APIModelClient):
 
         try:
             url, fields, photo_id = self._create_dataset_photo(dataset_id, photo_path, photo_type)
-        except Exception as e:
+        except (ValueError, FileNotFoundError, APIError) as e:
             logging.error(f"[{filename}] Échec création ressource : {e}")
             return False
 
