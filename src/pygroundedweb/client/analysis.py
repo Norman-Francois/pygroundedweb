@@ -12,6 +12,12 @@ from ..models.dataset import Dataset
 
 
 class AnalysisClient(APIModelClient):
+    """Client CRUD pour les ressources `Analysis` côté API.
+
+    Les méthodes exposées effectuent les appels réseau via `BaseAPIClient` et
+    peuvent propager `APIError`, `NetworkError`, `PermissionDenied` ou
+    `pydantic.ValidationError` en cas d'erreur.
+    """
 
     def _parse_json(self, analysis_json: str) -> Analysis:
         """Convertit le JSON renvoyé par l'API en instance `Analysis` et attache le client."""
@@ -43,6 +49,7 @@ class AnalysisClient(APIModelClient):
 
         Raises:
             ValueError: si ni dataset ni dataset_id ne sont fournis ou si les deux le sont.
+            APIError, NetworkError, PermissionDenied, pydantic.ValidationError
         """
 
         if not ((dataset is None) ^ (dataset_id is None)):
@@ -66,17 +73,29 @@ class AnalysisClient(APIModelClient):
         return self._parse_json(analysis_json)
 
     def retrieve(self, analysis_id: int):
-        """Récupère une analyse par son identifiant et renvoie une instance `Analysis`."""
+        """Récupère une analyse par son identifiant et renvoie une instance `Analysis`.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied, pydantic.ValidationError
+        """
         analysis_json = self._client.get_by_id("analyzes", analysis_id)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
         return self._parse_json(analysis_json)
 
     def update(self, analysis: Analysis) -> Analysis:
-        """Met à jour une analyse existante et retourne l'objet mis à jour."""
+        """Met à jour une analyse existante et retourne l'objet mis à jour.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied, pydantic.ValidationError
+        """
         analysis_json = self._client.update("analyzes", analysis)
         analysis_json["mutable_fields"] = ["name", "notify_by_email"]
         return self._parse_json(analysis_json)
 
     def delete(self, analysis_id: int):
-        """Supprime une analyse par identifiant."""
+        """Supprime une analyse par identifiant.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         self._client.delete_by_id("analyzes", analysis_id)

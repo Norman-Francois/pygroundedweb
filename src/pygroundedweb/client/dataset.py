@@ -19,18 +19,14 @@ from .base import APIModelClient
 logger = logging.getLogger(__name__)
 
 class DatasetClient(APIModelClient):
-    """Client pour effectuer des opérations CRUD sur les datasets.
+    """Client CRUD pour les datasets.
 
-    Methods
-    -------
-    create(dataset_name, photos_before=None, photos_after=None, max_workers=5, progress_callback=None)
-        Crée un dataset et upload ses photos en parallèle.
-    retrieve(dataset_id)
-        Récupère un dataset par identifiant.
-    update(dataset)
-        Met à jour un dataset existant.
-    delete(dataset_id)
-        Supprime un dataset par identifiant.
+    Fournit des helpers pour créer, récupérer, mettre à jour et supprimer des datasets,
+    y compris l'upload des photos associé (upload parallèle et confirmation côté serveur).
+
+    Notes:
+        - Les méthodes publiques peuvent lever : APIError, NetworkError, PermissionDenied,
+          UploadError ou pydantic.ValidationError selon le contexte.
     """
 
     def _parse_json(self, dataset_json: dict) -> Dataset:
@@ -247,6 +243,12 @@ class DatasetClient(APIModelClient):
 
         Returns:
             Instance `Dataset` représentant l'objet créé côté serveur.
+
+        Raises:
+            ValueError: si aucune photo n'est fournie.
+            FileNotFoundError: si un chemin de photo est introuvable.
+            UploadError: si l'upload de l'un des fichiers échoue.
+            APIError, NetworkError, PermissionDenied: pour les erreurs HTTP retournées par le serveur.
         """
         tasks = self._prepare_and_validate_tasks(photos_before, photos_after)
         dataset_id = self._initialize_dataset(dataset_name)
@@ -254,15 +256,27 @@ class DatasetClient(APIModelClient):
         return self._confirm_and_retrieve(dataset_id)
 
     def retrieve(self, dataset_id: int):
-        """Récupère un dataset par son identifiant et le convertit en objet `Dataset`."""
+        """Récupère un dataset par son identifiant et le convertit en objet `Dataset`.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied, pydantic.ValidationError
+        """
         dataset_json = self._client.get_by_id("datasets", dataset_id)
         return self._parse_json(dataset_json)
 
     def update(self, dataset: Dataset):
-        """Met à jour un dataset existant et renvoie l'objet mis à jour."""
+        """Met à jour un dataset existant et renvoie l'objet mis à jour.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied, pydantic.ValidationError
+        """
         dataset_json = self._client.update("datasets", dataset)
         return self._parse_json(dataset_json)
 
     def delete(self, dataset_id: int):
-        """Supprime un dataset par identifiant."""
+        """Supprime un dataset par identifiant.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         self._client.delete_by_id("datasets", dataset_id)

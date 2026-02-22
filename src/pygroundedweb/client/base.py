@@ -162,23 +162,43 @@ class BaseAPIClient:
         raise NetworkError(f"Échec réseau après {max_retries} tentatives sur {url}")
 
     def get(self, endpoint: str, **kwargs) -> requests.Response:
-        """Raccourci pour effectuer une requête GET."""
+        """Raccourci pour effectuer une requête GET.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         return self.request('GET', endpoint, **kwargs)
 
     def post(self, endpoint: str, **kwargs) -> requests.Response:
-        """Raccourci pour effectuer une requête POST."""
+        """Raccourci pour effectuer une requête POST.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         return self.request('POST', endpoint, **kwargs)
 
     def patch(self, endpoint: str, **kwargs) -> requests.Response:
-        """Raccourci pour effectuer une requête PATCH."""
+        """Raccourci pour effectuer une requête PATCH.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         return self.request('PATCH', endpoint, **kwargs)
 
     def put(self, endpoint: str, **kwargs) -> requests.Response:
-        """Raccourci pour effectuer une requête PUT."""
+        """Raccourci pour effectuer une requête PUT.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         return self.request('PUT', endpoint, **kwargs)
 
     def delete(self, endpoint: str, **kwargs) -> requests.Response:
-        """Raccourci pour effectuer une requête DELETE."""
+        """Raccourci pour effectuer une requête DELETE.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
+        """
         return self.request('DELETE', endpoint, **kwargs)
 
     def _retrieve_current_user(self):
@@ -294,15 +314,18 @@ class BaseAPIClient:
         response = self.delete(f"{resource}/{id}/")
         return response.json()
 
-    def get_all(self, resource: str, query_string: Dict[str, Any]) -> List[Any]:
+    def get_all(self, resource: str, query_string: Optional[Dict[str, Any]] = None) -> List[Any]:
         """Récupère la liste d'objets pour une ressource en utilisant query string.
 
         Args:
             resource: nom de la ressource.
-            query_string: dictionnaire de paramètres de filtrage/pagination.
+            query_string: dictionnaire de paramètres de filtrage/pagination (optionnel).
 
         Returns:
             Liste d'objets JSON.
+
+        Raises:
+            APIError, NetworkError, PermissionDenied
         """
         response = self.get(f"/{resource}/", params=query_string)
         return response.json()
