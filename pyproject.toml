@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygroundedweb"
-version = "1.0.0"
+version = "1.0.1"
 description = "SDK Python pour l'API GroundedWeb"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
