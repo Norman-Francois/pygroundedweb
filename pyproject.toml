@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygroundedweb"
-version = "0.2.0"
+version = "1.0.0"
 description = "SDK Python pour l'API GroundedWeb"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
@@ -29,6 +29,14 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/Norman-Francois/pygroundedweb"
 Issues = "https://github.com/Norman-Francois/pygroundedweb/issues"
+Documentation = "https://pygroundedweb.readthedocs.io/fr/latest/index.html"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme",
+    "sphinx-autodoc-typehints"
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
