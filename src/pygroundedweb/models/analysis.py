@@ -40,6 +40,7 @@ class Analysis(APIModel):
     status: Optional[AnalysisStatus] = None
     point_cloud_before: Optional[HttpUrl] = None
     point_cloud_after: Optional[HttpUrl] = None
+    result: Optional[HttpUrl] = None
     logs: Optional[HttpUrl] = None
     selection: Selection
     notify_by_email: bool
