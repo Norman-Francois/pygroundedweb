@@ -9,9 +9,9 @@ Ce module fournit une interface orientée objet pour interagir avec l'API Ground
 > [!IMPORTANT]
 > Cette version de `pygroundedweb` est strictement liée aux versions de l'API Grounded Web pour garantir la cohérence des schémas de données (Pydantic) et des endpoints API.
 
-| PyGroundedWeb | API Grounded Web (Backend) | Statut       |
-|---------------|----------------------------|--------------|
-| **v1.1.x**    | **v1.x.x ou supérieure**   | Supporté     |
+| PyGroundedWeb | API Grounded Web (Backend) | Statut   |
+|---------------|----------------------------|----------|
+| **v1.0.x**    | **v2.x.x**                 | Supporté |
 
 Pour vérifier la version de votre instance API, vous pouvez consulter le point d'entrée `/api/` de votre api.
 
@@ -46,7 +46,7 @@ La bibliothèque expose un client principal `GroundedWebClient` et des modèles 
 ### Exemple d'utilisation
 
 ```python
-from pygroundedweb import GroundedWebClient
+from pygroundedweb import *
 
 # 1. Initialisation et authentification
 client = GroundedWebClient(base_url="http://localhost:8000")
@@ -55,19 +55,41 @@ client.login(email="admin@example.com", password="password")
 # 2. Récupération d'un dataset existant
 dataset = client.dataset.retrieve(1)
 
-# 3. Définir ou charger une configuration (exemple minimal)
-# from pygroundedweb.models.configuration import Configuration
-# config = Configuration(...)
+# 3. Définition d'une configuration
+
+config = Configuration(
+    name="ConfigTest",
+    scale_bars= [
+        ScaleBar(start=0, end=1, length=.22),
+        ScaleBar(start=2, end=3, length=.22),
+        ScaleBar(start=4, end=5, length=.22),
+        ScaleBar(start=6, end=7, length=.22)],
+    detector= CCTag(),
+    cloud_processor= CloudCompare(),
+    sfm= MicMac(
+        distorsion_model=DistortionModel.FRASER_BASIC,
+        zoom_final=ZoomFinal.QUICK_MAC,
+        tapioca_mode=TapiocaMode.ALL,
+        tapioca_resolution=2000,
+        tapioca_second_resolution=1000
+    )
+)
 
 # 4. Lancement de l'analyse (exemple)
-# analysis = client.analysis.create(
-#     analysis_name="Analyse Batch 01",
-#     configuration=config,
-#     dataset=dataset,
-#     notify_by_email=True
-# )
+analysis = client.analysis.create(
+    analysis_name="Analyse 01",
+    configuration=config,
+    dataset=dataset,
+    notify_by_email=True
+)
 
-# print(f"Analyse créée : ID {analysis.pk} - Statut : {analysis.status}")
+print(f"Analyse créée : ID {analysis.pk} - Statut : {analysis.status}")
+
+# 5. Rafraîchir le statut de l'analyse depuis l'API
+analysis.refresh()
+
+# 6. Afficher l'analyse une fois rafraîchie
+print(f"Analyse ID {analysis.pk} - Statut actuel : {analysis.status}")
 ```
 
 ## Documentation
